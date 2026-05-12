@@ -1,0 +1,24 @@
+# Copyright (c) 2021 Nordic Semiconductor ASA
+# SPDX-License-Identifier: Apache-2.0
+#
+# This file is the application Kconfig entry point. All application Kconfig
+# options can be defined here or included via other application Kconfig files.
+# You can browse these options using the west targets menuconfig (terminal) or
+# guiconfig (GUI).
+
+menu "Zephyr"
+source "Kconfig.zephyr"
+endmenu
+
+module = APP
+module-str = APP
+source "subsys/logging/Kconfig.template.log_config"
+
+config USBD_NAME
+    string "USB device name"
+    default "Zephyr USB Device"
+    help
+      This option specifies the USB device name that will be used in the
+      USB descriptors. It is used by the USB stack to identify the device
+      when it is connected to a host. The default value is "Zephyr USB Device",
+      but it can be changed to any string that suits your application.

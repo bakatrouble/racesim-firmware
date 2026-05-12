@@ -1,0 +1,107 @@
+#include "common.overlay"
+
+/ {
+	inputs: zephyr,user {
+		gpios = <&exp1 0 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,
+				<&exp1 1 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,
+				<&exp1 2 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,
+				<&exp1 3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,
+				<&exp1 4 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,
+				<&exp1 5 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,
+				<&exp1 6 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,
+				<&exp1 7 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,
+				<&exp2 0 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,
+				<&exp2 1 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,
+				<&exp2 2 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,
+				<&exp2 3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,
+				<&exp2 4 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,
+				<&exp2 5 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,
+				<&exp2 6 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,
+				<&exp2 7 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+	};
+};
+
+&pinctrl {
+	i2c0_default: i2c0_default {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SDA, 1, 6)>,
+			        <NRF_PSEL(TWIM_SCL, 0, 9)>;
+		};
+	};
+
+	i2c0_sleep: i2c0_sleep {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SDA, 1, 6)>,
+			        <NRF_PSEL(TWIM_SCL, 0, 9)>;
+			low-power-enable;
+		};
+	};
+};
+
+&i2c1 {
+	compatible = "nordic,nrf-twi";
+	status = "okay";
+	pinctrl-0 = <&i2c0_default>;
+	pinctrl-1 = <&i2c0_sleep>;
+	pinctrl-names = "default", "sleep";
+
+	exp1: mcp23017@20 {
+		compatible = "microchip,mcp23017";
+		reg = <0x20>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		ngpios = <16>;
+	};
+
+	exp2: mcp23017@21 {
+		compatible = "microchip,mcp23017";
+		reg = <0x21>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		ngpios = <16>;
+	};
+};
+
+&pinctrl {
+	spi0_default: spi0_default {
+		group1 {
+			psels = <NRF_PSEL(SPIM_SCK, 0, 17)>,
+			        <NRF_PSEL(SPIM_MOSI, 0, 20)>;
+		};
+	};
+
+	spi0_sleep: spi0_sleep {
+		group1 {
+			psels = <NRF_PSEL(SPIM_SCK, 0, 17)>,
+			        <NRF_PSEL(SPIM_MOSI, 0, 20)>;
+			low-power-enable;
+		};
+	};
+};
+
+&spi0 {
+	compatible = "nordic,nrf-spi";
+	status = "okay";
+	pinctrl-0 = <&spi0_default>;
+	pinctrl-1 = <&spi0_sleep>;
+	pinctrl-names = "default", "sleep";
+	cs-gpios = <&gpio1 0 GPIO_ACTIVE_LOW>;
+
+	ssd1305: ssd1309@0 {
+		status = "okay";
+		compatible = "solomon,ssd1309";
+		reg = <0>;
+		label = "SSD1305";
+		spi-max-frequency = <1000000>;
+		width = <128>;
+		height = <32>;
+		segment-offset = <4>;
+		page-offset = <4>;
+		display-offset = <0x40>;
+		multiplex-ratio = <0x3F>;
+		prechargep = <0xF1>;
+		segment-remap;
+		reset-gpios = <&gpio0 22 GPIO_ACTIVE_LOW>;
+		data-cmd-gpios = <&gpio0 24 GPIO_ACTIVE_LOW>;
+	};
+};
