@@ -39,7 +39,7 @@ struct [[gnu::packed]] packet_t {
             adc3,
         };
         LOG_INF("Pedal values: x=%d, y=%d, z=%d", adc1, adc2, adc3);
-        // Gazell::send_packet(reinterpret_cast<const uint8_t*>(&packet), sizeof(packet));
+        Gazell::send_packet(reinterpret_cast<const uint8_t*>(&packet), sizeof(packet));
         k_sleep(K_MSEC(10));
     }
 }

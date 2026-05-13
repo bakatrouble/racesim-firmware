@@ -14,7 +14,6 @@ namespace HID {
 
     bool hid_ready = false;
     set_report_callback_t hid_set_report_callback = nullptr;
-    uint16_t hid_report_len = 0;
 
     void iface_ready(const device* dev, const bool ready) {
         LOG_INF("HID device %s interface is %s",
@@ -58,7 +57,7 @@ namespace HID {
 
     void send_input_report(const uint8_t *buf) {
         if (!hid_ready) {
-            LOG_ERR("HID device is not ready");
+            // LOG_ERR("HID device is not ready");
             return;
         }
 
@@ -69,9 +68,10 @@ namespace HID {
     }
 
     void hid_work_handler(k_work*) {
-        uint8_t buf[hid_report_len];
-        while (k_msgq_get(&hid_msgq, buf, K_NO_WAIT) == 0) {
-            const int ret = hid_device_submit_report(hid_dev, hid_report_len, buf);
+        hid_report_t buf {};
+        while (k_msgq_get(&hid_msgq, &buf, K_NO_WAIT) == 0) {
+            // LOG_HEXDUMP_INF((uint8_t*)&buf, sizeof(buf), "Submitting HID report");
+            const int ret = hid_device_submit_report(hid_dev, sizeof(buf), reinterpret_cast<const uint8_t*>(&buf));
             if (ret != 0) {
                 LOG_ERR("Failed to submit report to HID device: %d", ret);
             }
@@ -85,7 +85,7 @@ namespace HID {
         .output_report = output_report,
     };
 
-    int init(const uint8_t *hid_report_desc, const size_t hid_report_desc_len, const uint16_t _hid_report_len) {
+    int init(const uint8_t *hid_report_desc, const size_t hid_report_desc_len) {
         if (!device_is_ready(hid_dev)) {
             LOG_ERR("HID Device is not ready");
             return -EIO;
@@ -97,9 +97,8 @@ namespace HID {
             return ret;
         }
 
-        k_msgq_init(&hid_msgq, static_cast<char*>(k_malloc(_hid_report_len * 10)), hid_report_len, 10);
+        k_msgq_init(&hid_msgq, static_cast<char*>(k_malloc(sizeof(hid_report_t) * 10)), sizeof(hid_report_t), 10);
         k_work_init(&hid_work, hid_work_handler);
-        hid_report_len = _hid_report_len;
 
         return 0;
     }

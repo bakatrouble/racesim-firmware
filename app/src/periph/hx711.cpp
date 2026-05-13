@@ -16,6 +16,18 @@ namespace HX711 {
             return;
         }
 
+        // int err = avia_hx7xx_tare(dev, 15);
+        // if (err != 0) {
+        //     LOG_ERR("Failed to tare: %d", err);
+        //     return;
+        // }
+        //
+        // err = avia_hx7xx_calibrate(dev, 15, 2.);
+        // if (err != 0) {
+        //     LOG_ERR("Failed to calibrate: %d", err);
+        //     return;
+        // }
+
         constexpr sensor_value calibration_value {
             1
         };
@@ -25,7 +37,7 @@ namespace HX711 {
             return;
         }
 
-        LOG_INF("Found HX711 device");
+        LOG_INF("Initialized HX711 device");
     }
 
     int32_t read() {

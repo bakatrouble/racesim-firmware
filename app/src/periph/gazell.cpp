@@ -114,7 +114,7 @@ namespace Gazell {
         if (!result_value) {
             LOG_ERR("RX fifo error");
         } else if (data_payload_length > 0) {
-            LOG_INF("Received data on pipe %u, length %u", rx_result->pipe, data_payload_length);
+            // LOG_INF("Received data on pipe %u, length %u", rx_result->pipe, data_payload_length);
             LOG_HEXDUMP_DBG(data_payload, data_payload_length, "Data payload");
             if (gzll_rx_callback != nullptr) {
                 const bool need_ack = gzll_rx_callback(data_payload, data_payload_length, ack_payload);
@@ -181,7 +181,8 @@ namespace Gazell {
     void send_packet(const uint8_t* payload, const size_t len) {
         const bool res = nrf_gzll_add_packet_to_tx_fifo(0, payload, len);
         if (!res) {
-            LOG_WRN("Failed to add TX payload to FIFO");
+            const auto err = nrf_gzll_get_error_code();
+            LOG_WRN("Failed to add TX payload to FIFO: %d", err);
         }
     }
 #endif
