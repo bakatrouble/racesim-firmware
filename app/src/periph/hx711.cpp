@@ -10,6 +10,13 @@ namespace HX711 {
 
     const device *const dev = DEVICE_DT_GET(DT_NODELABEL(hx711));
 
+#define MEDIAN_WINDOW_SIZE 5
+    struct {
+        int32_t window[MEDIAN_WINDOW_SIZE];
+        size_t idx;
+    } median_filter;
+
+
     void init() {
         if (!device_is_ready(dev)) {
             LOG_ERR("HX711 device not ready");
@@ -37,7 +44,13 @@ namespace HX711 {
             return;
         }
 
+        memset(&median_filter, 0, sizeof(median_filter));
+
         LOG_INF("Initialized HX711 device");
+    }
+
+    int compare(const void *a, const void *b) {
+        return *static_cast<const int32_t*>(a) - *static_cast<const int32_t*>(b);
     }
 
     int32_t read() {
@@ -55,6 +68,21 @@ namespace HX711 {
             return err;
         }
 
-        return value.val1;
+        median_filter.window[median_filter.idx] = value.val1;
+        median_filter.idx = (median_filter.idx + 1) % MEDIAN_WINDOW_SIZE;
+
+        int32_t sorted_window[MEDIAN_WINDOW_SIZE];
+        for (size_t i = 0; i < MEDIAN_WINDOW_SIZE; i++) {
+            sorted_window[i] = median_filter.window[i];
+        }
+        qsort(sorted_window, MEDIAN_WINDOW_SIZE, sizeof(int32_t), compare);
+        int32_t median;
+        if (MEDIAN_WINDOW_SIZE % 2 == 0) {
+            median = (sorted_window[MEDIAN_WINDOW_SIZE / 2 - 1] + sorted_window[MEDIAN_WINDOW_SIZE / 2]) / 2;
+        } else {
+            median = sorted_window[MEDIAN_WINDOW_SIZE / 2];
+        }
+
+        return median;
     }
 }
